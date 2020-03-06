@@ -1,27 +1,22 @@
+<!--
+ * @Description: 
+ * @Author: OBKoro1
+ * @Date: 2020-01-13 15:29:02
+ * @LastEditors: chenchen
+ * @LastEditTime: 2020-03-06 19:51:00
+ -->
 <template>
   <div id="app">
-    <HelloWorld />
+		<router-view/>
   </div>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld.vue"
-
 export default {
-	name: "app",
-	components: {
-		HelloWorld
-	}
+	name: "app"
 }
 </script>
 
 <style>
-#app {
-	font-family: "Avenir", Helvetica, Arial, sans-serif;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	text-align: center;
-	color: #2c3e50;
-	margin-top: 60px;
-}
+#app {}
 </style>

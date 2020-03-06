@@ -3,12 +3,13 @@
  * @Author: OBKoro1
  * @Date: 2020-01-13 15:29:02
  * @LastEditors: chenchen
- * @LastEditTime: 2020-02-01 16:40:40
+ * @LastEditTime: 2020-03-06 20:54:31
  -->
 <template>
   <div class="hello">
     <span>dpr:{{dpr}}</span>
-    <div class="block"></div>
+    <el-input v-model="text" placeholder="input something"></el-input>
+    <el-button type="primary" @click="">1</el-button>
   </div>
 </template>
 
@@ -18,7 +19,8 @@ export default {
 
 	data() {
 		return {
-			dpr: 1
+      dpr: 1,
+      text: ''
 		}
 	},
 
@@ -28,16 +30,9 @@ export default {
 }
 </script>
 
-<style lang="less" scoped>
+<style lang="scss" scoped>
 .hello {
-  font-size: 12px;
-	border: 1px solid black;
+  font-size: $g-normal-font-size;
 	height: 100vh;
-  .block {
-    margin: auto;
-    border: 1px solid black;
-    height: 1rem;
-    width: 1rem;
-  }
 }
 </style>
