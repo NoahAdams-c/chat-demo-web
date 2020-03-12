@@ -3,13 +3,14 @@
  * @Author: OBKoro1
  * @Date: 2020-03-06 16:31:52
  * @LastEditors: chenchen
- * @LastEditTime: 2020-03-06 20:50:57
+ * @LastEditTime: 2020-03-12 17:53:16
  */
 const path = require("path")
 
 module.exports = {
 	publicPath: "/", // 公共路径
-	outputDir: process.env.NODE_ENV === "development" ? "devdist" : "dist", // 不同的环境打不同包名
+	assetsDir: "./static",
+	outputDir: "dist",
 	chainWebpack: config => {
 		config.module
 			.rule("css")
