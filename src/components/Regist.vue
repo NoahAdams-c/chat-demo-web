@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2020-03-10 23:00:35
  * @LastEditors: chenchen
- * @LastEditTime: 2020-03-11 01:40:09
+ * @LastEditTime: 2020-03-12 22:29:47
  -->
 <template>
   <div class="regist">
@@ -63,21 +63,21 @@ export default {
 
 	methods: {
 		async doRegist() {
-			// let data = {
-			// 	user_id: this.formObj.userId,
-			// 	password: this.formObj.password,
-			// 	nick_name: this.formObj.nickName
-			// }
-			// let result = await this.$ajax.doPost("/regist", data)
-			// if (result.status === "success") {
-			// 	this.$message({
-			// 		message: "注册成功",
-			// 		type: "success"
-			// 	})
-			// 	this.$router.push({ path: "/" })
-			// } else {
-			// 	this.$message.error(result.msg)
-			// }
+			let data = {
+				user_id: this.formObj.userId,
+				password: this.formObj.password,
+				nick_name: this.formObj.nickName
+			}
+			let result = await this.$ajax.doPost("/regist", data)
+			if (result.status === "success") {
+				this.$message({
+					message: "注册成功",
+					type: "success"
+				})
+				this.$router.push({ path: "/" })
+			} else {
+				this.$message.error(result.msg)
+			}
 		}
 	}
 }
