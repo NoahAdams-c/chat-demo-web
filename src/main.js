@@ -3,11 +3,10 @@
  * @Author: chenchen
  * @Date: 2020-01-13 15:29:02
  * @LastEditors: chenchen
- * @LastEditTime: 2020-03-11 22:42:21
+ * @LastEditTime: 2020-03-12 17:58:04
  */
 import Vue from "vue"
 import App from "./App.vue"
-import router from "./router"
 // 引入elementui样式文件
 // import "element-ui/lib/theme-chalk/index.css"
 import "@s/variables.scss"
@@ -25,6 +24,7 @@ Vue.component(Drawer.name, Drawer)
 Vue.component(Avatar.name, Avatar)
 
 Vue.config.productionTip = false
+import router from "./router"
 
 new Vue({
 	render: h => h(App),
