@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2020-03-10 23:00:35
  * @LastEditors: chenchen
- * @LastEditTime: 2020-03-13 01:12:29
+ * @LastEditTime: 2020-03-14 04:16:06
  -->
 <template>
   <div class="home">
@@ -14,36 +14,37 @@
           <div class="home__header--title">
             好友列表
           </div>
-          <i class="home__header--menu el-icon-menu" @click="drawer = true"></i>
+          <i class="home__header--menu el-icon-menu"
+             @click="drawer = true"></i>
         </div>
       </div>
       <!-- 列表 -->
       <div v-loading="isLoadingList">
         <div class="home__main">
-          <div
-            class="home__main--list"
-            v-for="(item, index) in getOnlineUsers"
-            :key="index"
-            @click="doChat(item)"
-          >
+          <div class="home__main--list"
+               v-for="(item, index) in getOnlineUsers"
+               :key="index"
+               @click="doChat(item)">
+            <!-- v-for="item in 20"
+               :key="item" -->
             <div class="list__avatar">
-              <el-avatar
-                class="icon"
-                size="medium"
-                :src="item.avatar"
-              ></el-avatar>
+              <el-avatar class="icon"
+                         size="medium"
+                         :src="item.avatar"></el-avatar>
             </div>
             <div class="list__item">
               <div class="info-container">
                 <div class="list__item--nickname">{{ item.nick_name }}</div>
+                <!-- <div class="list__item--nickname">Nick_Name</div> -->
                 <div class="list__item--date">2020/03/12 00:53:30</div>
               </div>
               <div class="msg-container">
                 <div class="list__item--message">
                   {{ getNewMsg(item.user_id) }}
                 </div>
-                <div class="list__item--flag" v-if="newMsgCache[item.user_id]">
-                  {{ getIsNewFlag(item.user_id) ? "New" : "" }}
+                <div class="list__item--flag"
+                     :class="{active:getIsNewFlag(item.user_id)}">
+                  New
                 </div>
               </div>
             </div>
@@ -52,27 +53,25 @@
       </div>
     </el-card>
     <!-- 侧边抽屉栏 -->
-    <el-drawer
-      :visible.sync="drawer"
-      direction="rtl"
-      size="40%"
-      :show-close="false"
-      :with-header="false"
-    >
+    <el-drawer :visible.sync="drawer"
+               direction="rtl"
+               size="40%"
+               :show-close="false"
+               :with-header="false">
       <div class="home__drawer">
         <!-- 头像部分 -->
         <div class="home__drawer--avatar">
-          <el-avatar class="icon" :src="userInfo.avatar"></el-avatar>
+          <el-avatar class="icon"
+                     :src="userInfo.avatar"></el-avatar>
           <div class="nickname">{{ userInfo.nick_name }}</div>
         </div>
         <!-- 其余功能 -->
-        <div
-          v-for="(item, index) in drawerItems"
-          :key="index"
-          class="home__drawer--item"
-          @click="item.func"
-        >
-          <i class="icon" :class="item.icon"></i>
+        <div v-for="(item, index) in drawerItems"
+             :key="index"
+             class="home__drawer--item"
+             @click="item.func">
+          <i class="icon"
+             :class="item.icon"></i>
           <div class="name">{{ item.name }}</div>
         </div>
       </div>
@@ -124,11 +123,20 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       if (vm.getLoginStatus) {
+        vm.initListener()
         next()
       } else {
         vm.$router.push({ path: "/" })
       }
     })
+  },
+  // 离开该组件的对应路由时调用
+  beforeRouteLeave(to, from, next) {
+    // 离开组件时注销resp事件
+    if (this.socketObj) {
+      this.socketObj.off("resp")
+    }
+    next()
   },
 
   computed: {
@@ -197,7 +205,22 @@ export default {
         msg: this.getNewMsg(friendInfo.user_id)
       })
       this.$router.push({
-        path: `/chat/${friendInfo.user_id}/${friendInfo.nick_name}`
+        path: `/chat/${friendInfo.user_id}`
+      })
+    },
+
+    /**
+     * 注册监听事件
+     */
+    initListener() {
+      // 监听回复事件
+      this.socketObj.on("resp", data => {
+        console.log(data)
+        // TODO: 更新最新消息逻辑需要改
+        this.$set(this.newMsgCache, data.from, {
+          isNew: true,
+          msg: data.msg
+        })
       })
     }
   },
@@ -210,17 +233,6 @@ export default {
     setTimeout(() => {
       this.isLoadingList = false
     }, 1000)
-    if (this.socketObj) {
-      // 监听服务端发送的消息
-      this.socketObj.on("resp", data => {
-        console.log(data)
-        // TODO: 更新最新消息逻辑需要改
-        this.$set(this.newMsgCache, data.from, {
-          isNew: true,
-          msg: data.msg
-        })
-      })
-    }
   }
 }
 </script>
@@ -268,11 +280,13 @@ export default {
         padding-right: 20px;
       }
       .list__item {
+        // height: $--avatar-medium-size;
         .info-container {
           padding-bottom: 10px;
         }
         .info-container,
         .msg-container {
+          // height: 50%;
           display: flex;
         }
         &--nickname {
@@ -294,6 +308,10 @@ export default {
         }
         &--flag {
           color: rgba(240, 13, 13, 0.931);
+          opacity: 0;
+          &.active {
+            opacity: 1;
+          }
         }
       }
     }

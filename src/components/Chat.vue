@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2020-03-13 00:35:44
  * @LastEditors: chenchen
- * @LastEditTime: 2020-03-13 02:02:21
+ * @LastEditTime: 2020-03-14 04:00:19
  -->
 <template>
   <div class="chat">
@@ -11,16 +11,36 @@
       <!-- 头部标题 -->
       <div slot="header">
         <div class="chat__header">
+          <i class="chat__header--back el-icon-arrow-left"
+             @click="goBack"></i>
           <div class="chat__header--title">
-            {{ friend_nick_name }}
+            {{ friendInfo.nick_name }}
           </div>
         </div>
       </div>
       <div class="chat__main">
-        <div class="chat__main--msg"></div>
+        <!-- 消息展示面板 -->
+        <div class="chat__main--msg"
+             ref="chatview">
+          <div class="msg__item"
+               :class="item.user_id === friend_user_id? 'float-left':'float-right'"
+               v-for="(item,index) in msgList"
+               :key="index">
+            <div class="msg__item--avatar">
+              <el-avatar size="small"
+                         :src="avatarUrl(item.user_id)"></el-avatar>
+            </div>
+            <div class="msg__item--content">
+              {{item.content}}
+            </div>
+          </div>
+        </div>
+        <!-- 输入面板 -->
         <div class="chat__main--input">
-          <el-input placeholder="输点啥..." v-model="msg">
-            <el-button slot="append">发送</el-button>
+          <el-input placeholder="输点啥..."
+                    v-model="msg">
+            <el-button slot="append"
+                       @click="sendMsg">发送</el-button>
           </el-input>
         </div>
       </div>
@@ -35,17 +55,20 @@ import { mapGetters } from "vuex"
 export default {
   name: "Chat",
 
-  props: {
-    friend_user_id: String,
-    friend_nick_name: String
-  },
+  props: ["friend_user_id"],
 
   data() {
     return {
+      // socket实例
+      socketObj: null,
       // 用户信息
       userInfo: {},
-      // 消息
-      msg: ""
+      // 朋友信息
+      friendInfo: {},
+      // 发送的消息
+      msg: "",
+      // 消息队列
+      msgList: []
     }
   },
 
@@ -53,11 +76,21 @@ export default {
   beforeRouteEnter(to, from, next) {
     next(vm => {
       if (vm.getLoginStatus) {
+        vm.getHistory()
+        vm.initListener()
         next()
       } else {
         vm.$router.push({ path: "/" })
       }
     })
+  },
+  // 离开该组件的对应路由时调用
+  beforeRouteLeave(to, from, next) {
+    // 离开组件时注销resp事件
+    if (this.socketObj) {
+      this.socketObj.off("resp")
+    }
+    next()
   },
 
   computed: {
@@ -69,27 +102,108 @@ export default {
       // 获取登录状态
       "getLoginStatus"
       // 获取最新消息
-    ])
+    ]),
+    avatarUrl() {
+      return user_id => {
+        if (user_id === this.userInfo.user_id) {
+          return this.userInfo.avatar
+        } else if (user_id === this.friend_user_id) {
+          return this.friendInfo.avatar
+        }
+        return ""
+      }
+    }
   },
 
-  methods: {},
+  watch: {
+    msgList: {
+      handler() {
+        // 每当消息展示框消息队列变化时将滚动条移至底部
+        this.$nextTick(() => {
+          this.$refs.chatview.scrollTop = this.$refs.chatview.scrollHeight
+        })
+      },
+      deep: true
+    }
+  },
+
+  methods: {
+    /**
+     * 发送消息
+     */
+    sendMsg() {
+      // 去除空格
+      this.msg = trim(this.msg)
+      this.msgList.push({
+        user_id: this.userInfo.user_id,
+        content: this.msg,
+        created_at: new Date()
+      })
+      let data = {
+        msg: this.msg,
+        to: this.friend_user_id
+      }
+      // 调起后台chat事件发送消息
+      this.socketObj.emit("chat", data)
+      // 每次输入发送完清空输入框
+      this.msg = ""
+    },
+    /**
+     * 获取历史消息
+     */
+    async getHistory() {
+      // 查询历史消息
+      let params = {
+        user_id: this.userInfo.user_id,
+        to_who: this.friend_user_id
+      }
+      let _data = await this.$ajax.doGet("/getRecords", params)
+      if (_data.status === "success") {
+        this.msgList = _data.data
+      } else {
+        // TODO: 接口调用失败处理
+      }
+    },
+    /**
+     * 注册监听事件
+     */
+    initListener() {
+      // 监听回复事件
+      this.socketObj.on("resp", data => {
+        this.msgList.push({
+          user_id: data.from,
+          content: data.msg,
+          created_at: data.created_at
+        })
+      })
+    },
+    /**
+     * 返回主页
+     */
+    goBack() {
+      this.$router.push({ path: `/home/${this.userInfo.user_id}` })
+    },
+    /**
+     * 获取好友信息
+     */
+    async getFriendInfo() {
+      let _data = await this.$ajax.doGet(`/getUserInfo/${this.friend_user_id}`)
+      if (_data.status === "success") {
+        this.friendInfo = {
+          nick_name: _data.data.nick_name,
+          avatar: `http://${this.SERVER_HOST}${_data.data.avatar}`
+        }
+      } else {
+        // TODO: 接口调用失败处理
+      }
+    }
+  },
 
   async created() {
     console.log(this.friend_user_id)
-    console.log(this.friend_nick_name)
+    this.socketObj = this.getSocket
     this.userInfo = this.getUserInfo
-    // 历史消息查询结束时间设为当前时间
-    let end_date = new Date()
-    // 历史消息查询开始时间设为一天前
-    let start_date = new Date(end_date - 24 * 60 * 60 * 1000)
-    // 查询历史消息
-    let params = {
-      user_id: this.userInfo.user_id,
-      to_who: this.friend_user_id,
-      start_date: start_date,
-      end_date: end_date
-    }
-    //   let _data = await this.$ajax.doGet("/getRecords", params)
+    await this.getFriendInfo()
   }
 }
 </script>
@@ -98,19 +212,18 @@ export default {
 .chat {
   height: 100vh;
   .el-card {
-    display: flex;
-    flex-direction: column;
     background: rgba($color: #3a3a3a, $alpha: 0.6);
     border: unset;
-    color: #eaeaea;
     height: 100vh;
   }
   /deep/.el-card__header {
+    height: 130px;
+    color: #eaeaea;
     border: 0;
     box-shadow: 0 10px 12px 0 rgba(219, 219, 219, 0.1);
   }
   /deep/.el-card__body {
-    flex: 1;
+    height: calc(100vh - 150px);
   }
   /deep/.el-input__inner {
     background: #fff0;
@@ -118,11 +231,13 @@ export default {
     color: #2a2a2a;
   }
   &__header {
-    // display: flex;
-    // align-items: center;
+    display: flex;
+    align-items: center;
     font-size: $--font-size-extra-large;
+    &--back {
+    }
     &--title {
-      //   flex: 1;
+      flex: 1;
       text-align: center;
       font-weight: 800;
     }
@@ -134,6 +249,32 @@ export default {
     &--msg {
       flex: 1;
       overflow-y: auto;
+      padding-bottom: 20px;
+      .msg__item {
+        &--content {
+          font-size: $--font-size-large;
+          color: #eaeaea;
+          padding: 16px 20px;
+          margin: 0 20px;
+          max-width: 60vw;
+          overflow-wrap: break-word;
+          background: #337399ad;
+          border-radius: $--border-radius-base;
+        }
+        &--avatar {
+        }
+      }
+      .msg__item ~ .msg__item {
+        margin-top: 18px;
+      }
+      .float-right {
+        display: flex;
+        flex-direction: row-reverse;
+      }
+      .float-left {
+        display: flex;
+        flex-direction: row;
+      }
     }
     &--input {
       background: rgba(255, 255, 255, 0.8);

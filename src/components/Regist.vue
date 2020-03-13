@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2020-03-10 23:00:35
  * @LastEditors: chenchen
- * @LastEditTime: 2020-03-12 22:29:47
+ * @LastEditTime: 2020-03-13 23:17:33
  -->
 <template>
   <div class="regist">
@@ -33,7 +33,7 @@
                     type="password" />
         </el-form-item>
         <div class="regist__submit">
-          <el-button @click="$router.back()">
+          <el-button @click="goBack">
             取消
           </el-button>
           <el-button type="primary"
@@ -48,63 +48,73 @@
 
 <script>
 export default {
-	name: "Regist",
+  name: "Regist",
 
-	data() {
-		return {
-			formObj: {
-				nickName: "",
-				userId: "",
-				password: "",
-				repassw: ""
-			}
-		}
-	},
+  data() {
+    return {
+      formObj: {
+        nickName: "",
+        userId: "",
+        password: "",
+        repassw: ""
+      }
+    }
+  },
 
-	methods: {
-		async doRegist() {
-			let data = {
-				user_id: this.formObj.userId,
-				password: this.formObj.password,
-				nick_name: this.formObj.nickName
-			}
-			let result = await this.$ajax.doPost("/regist", data)
-			if (result.status === "success") {
-				this.$message({
-					message: "注册成功",
-					type: "success"
-				})
-				this.$router.push({ path: "/" })
-			} else {
-				this.$message.error(result.msg)
-			}
-		}
-	}
+  methods: {
+    /**
+     * 注册
+     */
+    async doRegist() {
+      let data = {
+        user_id: this.formObj.userId,
+        password: this.formObj.password,
+        nick_name: this.formObj.nickName
+      }
+      let result = await this.$ajax.doPost("/regist", data)
+      if (result.status === "success") {
+        this.$message({
+          message: "注册成功",
+          type: "success"
+        })
+        this.$router.push({ path: "/" })
+      } else {
+        this.$message.error(result.msg)
+      }
+    },
+
+    /**
+     * 返回登录页
+     */
+    goBack() {
+      this.$router.push({ path: "/" })
+    }
+  }
 }
 </script>
 
 <style lang="scss" scoped>
 .regist {
-	.el-card {
-		background: rgba($color: #3a3a3a, $alpha: 0.6);
-		border: unset;
-		color: #eaeaea;
-		width: 90%;
-		position: absolute;
-		transform: translate(-50%, -50%);
-		top: 45%;
-		left: 50%;
-	}
-	&/deep/.el-form-item__label {
-		color: #eaeaea !important;
-	}
-	&__title {
-		font-weight: 800;
-		font-size: $--font-size-extra-large;
-	}
-	&__submit {
-		text-align: center;
-		padding: 10px 0;
-	}
+  .el-card {
+    background: rgba($color: #3a3a3a, $alpha: 0.6);
+    border: unset;
+    color: #eaeaea;
+    width: 90%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    top: 45%;
+    left: 50%;
+  }
+  &/deep/.el-form-item__label {
+    color: #eaeaea !important;
+  }
+  &__title {
+    font-weight: 800;
+    font-size: $--font-size-extra-large;
+  }
+  &__submit {
+    text-align: center;
+    padding: 10px 0;
+  }
 }
 </style>

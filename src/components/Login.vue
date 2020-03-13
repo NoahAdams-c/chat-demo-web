@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2020-01-13 15:29:02
  * @LastEditors: chenchen
- * @LastEditTime: 2020-03-12 22:54:04
+ * @LastEditTime: 2020-03-14 03:35:09
  -->
 <template>
   <div class="login">
@@ -11,19 +11,21 @@
       <div slot="header">
         <span class="login__title">用户登录</span>
       </div>
-      <el-form ref="form" :model="formObj" label-width="0">
+      <el-form ref="form"
+               :model="formObj"
+               label-width="0">
         <el-form-item>
-          <el-input placeholder="用户名" v-model="formObj.userId" />
+          <el-input placeholder="用户名"
+                    v-model="formObj.userId" />
         </el-form-item>
         <el-form-item>
-          <el-input
-            placeholder="密码"
-            v-model="formObj.password"
-            type="password"
-          />
+          <el-input placeholder="密码"
+                    v-model="formObj.password"
+                    type="password" />
         </el-form-item>
         <div class="login__submit">
-          <el-button type="primary" @click="doLogin">
+          <el-button type="primary"
+                     @click="doLogin">
             登录
           </el-button>
           <el-button @click="toRegist">
@@ -55,6 +57,7 @@ export default {
         password: this.formObj.password
       }
       let result = await this.$ajax.doGet("/login", params)
+      console.log(result)
       if (result.status === "success") {
         this.$message({
           message: "登录成功",

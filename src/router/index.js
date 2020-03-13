@@ -3,7 +3,7 @@
  * @Author: chenchen
  * @Date: 2020-03-06 18:05:11
  * @LastEditors: chenchen
- * @LastEditTime: 2020-03-13 00:53:03
+ * @LastEditTime: 2020-03-14 02:42:43
  */
 import Vue from "vue"
 import Router from "vue-router"
@@ -34,7 +34,7 @@ export default new Router({
       props: true
     },
     {
-      path: "/chat/:friend_user_id/:friend_nick_name",
+      path: "/chat/:friend_user_id",
       name: "Chat",
       component: Chat,
       props: true
